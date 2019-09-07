@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -21,7 +22,7 @@ namespace GraphTest
         public SeriesCollection XPDiffCollection { get; set; }
         public string[] Labels { get; set; }
         public Func<double, string> YFormatter { get; set; }
-
+        private readonly DiscordWebhookClient discord = new DiscordWebhookClient(0, "token");
 
         public MainWindow()
         {
@@ -45,7 +46,13 @@ namespace GraphTest
                 },
             };
 
-            Labels = FileHandler.Date.ToArray();
+            DateTime[] DateValues = FileHandler.Date.ToArray();
+            string[] DateStringValues = new string[DateValues.Length];
+            for (int i = 0; i < DateValues.Length; i++)
+            {
+                DateStringValues[i] = DateValues[i].ToString("MMM d");
+            }
+            Labels = DateStringValues;
             YFormatter = value => value.ToString();
             DataContext = this;
         }
@@ -69,13 +76,52 @@ namespace GraphTest
         {
             string ChartName = TotalXPHeader.IsSelected ? "TotalChart" : "DiffChart";
             SaveFile();
-            DiscordWebhookClient discord = new DiscordWebhookClient(1, "token");
             discord.SendFileAsync(Environment.CurrentDirectory + @"\" + ChartName + ".png", "");
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             SaveFile();
+        }
+
+        private void DetailsButton_Click(object sender, RoutedEventArgs e)
+        {
+            string str = "Total XP : ";
+            foreach (long value in FileHandler.XP)
+            {
+                str += " " + value;
+            }
+
+            str += " XP Diff : ";
+
+            foreach (long value in FileHandler.XPDiff)
+            {
+                str += " " + value;
+            }
+
+            str += " Dates : ";
+
+            foreach (DateTime value in FileHandler.Date)
+            {
+                str += $" \"{value.Day}/{value.Month}\"";
+            }
+
+            Clipboard.SetText(str);
+        }
+
+        private void StatsButton_Click(object sender, RoutedEventArgs e)
+        {
+            string stats = $" Total Days of Data : {FileHandler.XPDiff.Count}" +
+                $" \n Total Days with 0 XP gain : {FileHandler.TotalDaysWasted}" +
+                $" \n Longest Streak without XP gain : {FileHandler.LongestStreak} " +
+                $" \n Most XP Gained in 1 Day : {FileHandler.XPDiff.Max()}" +
+                $" \n Average XP Gained per Day : {FileHandler.XPDiff.Average()}";
+            MessageBox.Show(stats);
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            discord.Dispose();
         }
     }
 }

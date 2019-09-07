@@ -11,14 +11,16 @@ namespace GraphTest
     {
         public static LinkedList<long> XP = new LinkedList<long>();
         public static LinkedList<long> XPDiff = new LinkedList<long>();
-        public static LinkedList<string> Date = new LinkedList<string>();
+        public static LinkedList<DateTime> Date = new LinkedList<DateTime>();
+        public static int TotalDaysWasted { get; set; }
+        public static int LongestStreak { get; set; }
 
         public static void LoadFile()
         {
             List<UserXp> XpList = new List<UserXp>();
-            if (File.Exists(@"location"))
+            if (File.Exists(@"File"))
             {
-                var lines = File.ReadLines(@"location");
+                var lines = File.ReadLines(@"File");
                 //deserialize each line and add to list
                 foreach (var line in lines)
                 {
@@ -29,6 +31,7 @@ namespace GraphTest
             long LastXp = int.Parse(XpList.First().OsrsXP);
             DateTime LastDate = date;
             int i = 0;
+            int CurrentStreak = 0;
             //fills in the blanks where there is no data for the day which presumes he has not gained xp for that day.
             while (i != XpList.Count)
             {
@@ -54,12 +57,19 @@ namespace GraphTest
                         XpDiff = NewXp - LastXp;
                         LastXp = NewXp;
                         i++;
+                        CurrentStreak = 0;
+                    }
+                    if (XpDiff == 0)
+                    {
+                        CurrentStreak++;
+                        LongestStreak = CurrentStreak > LongestStreak ? CurrentStreak : LongestStreak;
+                        TotalDaysWasted++;
                     }
                     //add values to the lists
                     LastDate = date;
                     XP.AddLast(LastXp);
                     XPDiff.AddLast(XpDiff);
-                    Date.AddLast(date.Day + "/" + date.Month);
+                    Date.AddLast(date);
                     //add one more day onto the incrementer if it isnt the last i so that the next while loop will add a day
                     date = i == XpList.Count ? date : date.AddDays(1);
                 }
@@ -76,7 +86,10 @@ namespace GraphTest
                 date = date.AddDays(1);
                 XP.AddLast(LastXp);
                 XPDiff.AddLast(0);
-                Date.AddLast(date.Day + "/" + date.Month);
+                Date.AddLast(date);
+                CurrentStreak++;
+                LongestStreak = CurrentStreak > LongestStreak ? CurrentStreak : LongestStreak;
+                TotalDaysWasted++;
             }
         }
     }

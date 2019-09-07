@@ -4,29 +4,33 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
-             mc:Ignorable="d" Height="593.878" Width="1241.326">
+             mc:Ignorable="d" Height="593.878" Width="1241.326" Closed="Window_Closed">
     <Grid Background="#FF1E1E1E">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="30*"/>
+            <ColumnDefinition Width="43*"/>
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="117*"/>
             <RowDefinition Height="124*"/>
         </Grid.RowDefinitions>
         <Button Content="Send to Discord" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click" Margin="190,0,0,0"/>
-        <TabControl Name="Tabs" HorizontalAlignment="Center" Height="526" VerticalAlignment="Center" Width="1221" Background="#FF1E1E1E" Grid.RowSpan="2">
+        <TabControl Name="Tabs" HorizontalAlignment="Center" Height="526" VerticalAlignment="Center" Width="1221" Background="#FF1E1E1E" Grid.RowSpan="2" Grid.ColumnSpan="2">
             <TabItem Name ="TotalXPHeader" Header="Total XP">
                 <Grid Background="#FF1E1E1E">
-                    <lvc:CartesianChart Name ="TotalChart" Series="{Binding TotalXpCollection}" LegendLocation="Right" Background="#FF1E1E1E" Foreground="White" Margin="0,0,31,0.04">
+                    <lvc:CartesianChart Name ="TotalChart" Series="{Binding TotalXpCollection}" LegendLocation="Right" Background="#FF1E1E1E" Foreground="Black" Margin="0,0,31,0.04">
                         <lvc:CartesianChart.AxisY>
                             <lvc:Axis Title="Total XP" LabelFormatter="{Binding YFormatter}"></lvc:Axis>
                         </lvc:CartesianChart.AxisY>
                         <lvc:CartesianChart.AxisX>
-                            <lvc:Axis Title="Date" Labels="{Binding Labels}"></lvc:Axis>
+                            <lvc:Axis Title="Date" Labels="{Binding Labels}"  Foreground="White"></lvc:Axis>
                         </lvc:CartesianChart.AxisX>
                     </lvc:CartesianChart>
                 </Grid>
             </TabItem>
             <TabItem Header="Xp Gains">
                 <Grid Background="#FF1E1E1E">
-                    <lvc:CartesianChart Name="DiffChart"  Series="{Binding XPDiffCollection}" LegendLocation="Left" Background="#FF1E1E1E" Foreground="White">
+                    <lvc:CartesianChart Name="DiffChart"  Series="{Binding XPDiffCollection}" LegendLocation="Left" Background="#FF1E1E1E" Foreground="Black">
                         <lvc:CartesianChart.AxisX>
                             <lvc:Axis Title="Time" Labels="{Binding Labels}"></lvc:Axis>
                         </lvc:CartesianChart.AxisX>
@@ -38,5 +42,7 @@
             </TabItem>
         </TabControl>
         <Button Name="SaveButton" Content="Save" HorizontalAlignment="Left" Margin="283,1,0,0" VerticalAlignment="Top" Width="74" Click="SaveButton_Click"/>
+        <Button Name="DetailsButton" Content="Copy Raw Details" HorizontalAlignment="Left" Margin="362,1,0,0" VerticalAlignment="Top" Width="130" Click="DetailsButton_Click"/>
+        <Button Name="StatsButton" Content="Stats" HorizontalAlignment="Left" Margin="499,1,0,0" VerticalAlignment="Top" Click="StatsButton_Click" Width="60" Grid.ColumnSpan="2"></Button>
     </Grid>
 </Window>
