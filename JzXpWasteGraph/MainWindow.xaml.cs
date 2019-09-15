@@ -1,4 +1,5 @@
 ﻿using Discord.Webhook;
+using JzXpWasteGraph;
 using LiveCharts;
 using LiveCharts.Wpf;
 using System;
@@ -6,10 +7,12 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Brushes = System.Windows.Media.Brushes;
 
 namespace GraphTest
 {
@@ -20,9 +23,10 @@ namespace GraphTest
     {
         public SeriesCollection TotalXpCollection { get; set; }
         public SeriesCollection XPDiffCollection { get; set; }
+        public SeriesCollection SkillsCollection { get; set; }
         public string[] Labels { get; set; }
         public Func<double, string> YFormatter { get; set; }
-        private readonly DiscordWebhookClient discord = new DiscordWebhookClient(0, "token");
+        private readonly DiscordWebhookClient discord = new DiscordWebhookClient(1, "token");
 
         public MainWindow()
         {
@@ -46,7 +50,21 @@ namespace GraphTest
                 },
             };
 
-            DateTime[] DateValues = FileHandler.Date.ToArray();
+            SkillsCollection = new SeriesCollection();
+            //create a List of Lists of skills
+            Type playerinfo = typeof(PlayerInfo);
+            foreach (PropertyInfo prop in playerinfo.GetProperties().Where(prop => prop.PropertyType == typeof(Skill) && prop.Name != "Overall"))
+            {
+                SkillsCollection.Add(new LineSeries
+                {
+                    Title = prop.Name,
+                    Values = new ChartValues<long>(FileHandler.GetSkillList(FileHandler.PlayerInfos, prop.Name, "Experience")),
+                    LineSmoothness = 0,
+                    Fill = System.Windows.Media.Brushes.Transparent
+                });
+            }
+
+                DateTime[] DateValues = FileHandler.Date.ToArray();
             string[] DateStringValues = new string[DateValues.Length];
             for (int i = 0; i < DateValues.Length; i++)
             {
@@ -55,6 +73,12 @@ namespace GraphTest
             Labels = DateStringValues;
             YFormatter = value => value.ToString();
             DataContext = this;
+            DiffChart.DataTooltip.Background = Brushes.Black;
+            DiffChart.DataTooltip.Foreground = Brushes.White;
+            SkillsChart.DataTooltip.Background = Brushes.Black;
+            SkillsChart.DataTooltip.Foreground = Brushes.White;
+            TotalChart.DataTooltip.Background = Brushes.Black;
+            TotalChart.DataTooltip.Foreground = Brushes.White;
         }
 
         private void SaveFile()

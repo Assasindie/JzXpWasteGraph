@@ -1,17 +1,26 @@
-﻿using Newtonsoft.Json;
+﻿using JzXpWasteGraph;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 
 namespace GraphTest
 {
+    class UserXp
+    {
+        public string DiscordID;
+        public DateTime LastUpdate;
+        public PlayerInfo Player;
+    }
+
     class FileHandler
     {
-        public static LinkedList<long> XP = new LinkedList<long>();
-        public static LinkedList<long> XPDiff = new LinkedList<long>();
-        public static LinkedList<DateTime> Date = new LinkedList<DateTime>();
+        public static List<long> XP = new List<long>();
+        public static List<long> XPDiff = new List<long>();
+        public static List<DateTime> Date = new List<DateTime>();
+        public static List<PlayerInfo> PlayerInfos = new List<PlayerInfo>();
         public static int TotalDaysWasted { get; set; }
         public static int LongestStreak { get; set; }
 
@@ -28,7 +37,8 @@ namespace GraphTest
                 }
             }
             DateTime date = XpList.First().LastUpdate;
-            long LastXp = int.Parse(XpList.First().OsrsXP);
+            long LastXp = XpList.First().Player.Overall.Experience;
+            PlayerInfo LastPlayerInfo = XpList.First().Player;
             DateTime LastDate = date;
             int i = 0;
             int CurrentStreak = 0;
@@ -39,12 +49,15 @@ namespace GraphTest
                 if (LastDate.Month == XpList[i].LastUpdate.Month && LastDate.Day == XpList[i].LastUpdate.Day && i != 0)
                 {
                     long prevXPDeff = XPDiff.Last();
-                    XPDiff.RemoveLast();
-                    XP.RemoveLast();
-                    long NewXp = int.Parse(XpList[i].OsrsXP);
-                    XPDiff.AddLast((NewXp-LastXp) + prevXPDeff);
+                    XPDiff.RemoveAt(XPDiff.Count - 1);
+                    XP.RemoveAt(XP.Count - 1);
+                    PlayerInfos.RemoveAt(PlayerInfos.Count - 1);
+                    long NewXp = XpList[i].Player.Overall.Experience;
+                    XPDiff.Add((NewXp-LastXp) + prevXPDeff);
                     LastXp = NewXp;
-                    XP.AddLast(LastXp);
+                    XP.Add(LastXp);
+                    LastPlayerInfo = XpList[i].Player;
+                    PlayerInfos.Add(LastPlayerInfo);
                     i++;
                 }
                 else
@@ -53,23 +66,25 @@ namespace GraphTest
                     //if the date and month of the incrementing date match the current data selection add in the new xp and increment i.
                     if (date.Month == XpList[i].LastUpdate.Month && date.Day == XpList[i].LastUpdate.Day)
                     {
-                        long NewXp = int.Parse(XpList[i].OsrsXP);
+                        long NewXp = XpList[i].Player.Overall.Experience;
                         XpDiff = NewXp - LastXp;
                         LastXp = NewXp;
+                        LastPlayerInfo = XpList[i].Player;
                         i++;
                         CurrentStreak = 0;
                     }
                     if (XpDiff == 0)
                     {
                         CurrentStreak++;
-                        LongestStreak = CurrentStreak > LongestStreak ? CurrentStreak : LongestStreak;
+                        LongestStreak = CurrentStreak > LongestStreak ? CurrentStreak : LongestStreak;  
                         TotalDaysWasted++;
                     }
                     //add values to the lists
                     LastDate = date;
-                    XP.AddLast(LastXp);
-                    XPDiff.AddLast(XpDiff);
-                    Date.AddLast(date);
+                    XP.Add(LastXp);
+                    XPDiff.Add(XpDiff);
+                    Date.Add(date);
+                    PlayerInfos.Add(LastPlayerInfo);
                     //add one more day onto the incrementer if it isnt the last i so that the next while loop will add a day
                     date = i == XpList.Count ? date : date.AddDays(1);
                 }
@@ -84,13 +99,27 @@ namespace GraphTest
                 }
                 //add one more day onto the incrementer
                 date = date.AddDays(1);
-                XP.AddLast(LastXp);
-                XPDiff.AddLast(0);
-                Date.AddLast(date);
+                XP.Add(LastXp);
+                XPDiff.Add(0);
+                Date.Add(date);
+                PlayerInfos.Add(LastPlayerInfo);
                 CurrentStreak++;
                 LongestStreak = CurrentStreak > LongestStreak ? CurrentStreak : LongestStreak;
                 TotalDaysWasted++;
             }
+        }
+
+        public static List<long> GetSkillList(List<PlayerInfo> PlayerInfos, string SkillName, string Property)
+        {
+            List<long> SkillList = new List<long>();
+            for (int i = 0; i < PlayerInfos.Count; i++)
+            {
+                PlayerInfo player = PlayerInfos[i];
+                Type playerinfo = typeof(PlayerInfo);
+                Skill skill = (Skill)playerinfo.GetProperty(SkillName).GetValue(player, null);
+                SkillList.Add(skill.Experience);
+            }
+            return SkillList;   
         }
     }
 }
